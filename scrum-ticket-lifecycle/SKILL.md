@@ -81,6 +81,8 @@ Sprint Board 使用四個狀態：**To Do → In Progress → Pending → Done**
 
 ---
 
+### 🔵 分工規則
+
 **Squad 內部**：Task 在 Planning 時才拆分指派，一張 Task 一個 Assignee。同一人認領超過 3 張 Task 應在 Planning 提出討論。
 
 **跨 Squad**：先定主責 Squad 再開單。主責開 Feature，依賴 Squad 的 Task 掛在同一 Feature 下，不要各自開 Feature 靠口頭協調。
