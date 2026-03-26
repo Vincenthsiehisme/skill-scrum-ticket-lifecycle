@@ -1,1 +1,71 @@
+name: Skill PR Validation
 
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scrum-ticket-lifecycle/**'
+      - 'CLAUDE.md'
+      - '.github/copilot-instructions.md'
+
+jobs:
+  validate:
+    name: Validate skill files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check SKILL.md line count
+        run: |
+          LINES=$(wc -l < scrum-ticket-lifecycle/SKILL.md)
+          echo "SKILL.md line count: $LINES"
+          if [ "$LINES" -gt 300 ]; then
+            echo "❌ SKILL.md exceeds 300 lines ($LINES). Move content to references/."
+            exit 1
+          else
+            echo "✅ SKILL.md line count OK ($LINES / 300)"
+          fi
+
+      - name: Check required files exist
+        run: |
+          FILES=(
+            "scrum-ticket-lifecycle/SKILL.md"
+            "scrum-ticket-lifecycle/references/ac-guide.md"
+            "scrum-ticket-lifecycle/references/block-handling.md"
+            "scrum-ticket-lifecycle/references/card-states.md"
+            "scrum-ticket-lifecycle/references/ado-fields.md"
+            "CLAUDE.md"
+            ".github/copilot-instructions.md"
+          )
+          FAILED=0
+          for f in "${FILES[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "❌ Missing required file: $f"
+              FAILED=1
+            else
+              echo "✅ Found: $f"
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then exit 1; fi
+
+      - name: Check reference files are listed in SKILL.md
+        run: |
+          FAILED=0
+          for ref in scrum-ticket-lifecycle/references/*.md; do
+            BASENAME=$(basename "$ref")
+            if ! grep -q "$BASENAME" scrum-ticket-lifecycle/SKILL.md; then
+              echo "❌ $BASENAME is not listed in SKILL.md Reference Files table"
+              FAILED=1
+            else
+              echo "✅ $BASENAME is referenced in SKILL.md"
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then exit 1; fi
+
+      - name: Summary
+        if: success()
+        run: |
+          echo ""
+          echo "✅ All checks passed. Ready for maintainer review."
